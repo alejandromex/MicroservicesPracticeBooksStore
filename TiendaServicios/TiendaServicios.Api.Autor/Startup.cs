@@ -1,6 +1,10 @@
+using AutoMapper;
+using FluentValidation.AspNetCore;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,6 +14,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TiendaServicios.Api.Autor.Aplication;
+using TiendaServicios.Api.Autor.Persistencia;
 
 namespace TiendaServicios.Api.Autor
 {
@@ -26,7 +32,16 @@ namespace TiendaServicios.Api.Autor
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllers();
+            services.AddDbContext<ContextoAutor>(options =>
+            {
+                options.UseNpgsql(Configuration.GetConnectionString("ConexionDatabase"));
+            });
+
+            services.AddMediatR(typeof(Nuevo.Manejador).Assembly);
+            services.AddAutoMapper(typeof(Consulta.Manejador));
+
+            services.AddControllers().AddFluentValidation(cfg => cfg.RegisterValidatorsFromAssemblyContaining<Nuevo>());
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "TiendaServicios.Api.Autor", Version = "v1" });
